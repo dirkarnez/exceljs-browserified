@@ -1,0 +1,104 @@
+name: webpack-umd-release-actions-workflow
+on: 
+  push:
+    paths-ignore:
+      - '**/README.md'
+
+jobs:
+  build:
+    name: Create Release
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        type: [var, esm, assign]   # https://webpack.js.org/configuration/output/#outputlibrarytype
+    env:
+      npmlibraryName: "fastest-levenshtein"
+      version: 1.0.16
+      appendToWebpackCli: ''
+      exportFileName: fastest-levenshtein.js
+      exportJSVariableName: fastestLevenshtein
+    steps:
+      - uses: actions/checkout@v4
+
+      # - name: git clone
+      #   shell: cmd
+      #   run: git clone https://github.com/dirkarnez/minimal-webpack-boilerplate.git
+        
+      - name: curl node-v18.12.1-win-x64.zip
+        shell: cmd
+        run: |
+          curl https://nodejs.org/dist/v18.12.1/node-v18.12.1-win-x64.zip -L --output node-v18.12.1-win-x64.zip &&^
+          7z.exe x node-v18.12.1-win-x64.zip
+
+      - name: curl PortableGit-2.38.1-64-bit.7z.exe
+        shell: cmd
+        run: curl https://github.com/git-for-windows/git/releases/download/v2.38.1.windows.1/PortableGit-2.38.1-64-bit.7z.exe -L --output PortableGit-2.38.1-64-bit.7z.exe && dir && 7z.exe x PortableGit-2.38.1-64-bit.7z.exe -o"PortableGit-2.38.1-64-bit"
+        
+      - if: ${{ matrix.type == 'var' }}
+        name: write dummy index.ts
+        shell: bash
+        run: |
+          echo -e "// @ts-ignore\nexport * from \"${{ env.npmlibraryName }}\";\n// @ts-ignore\nexport { default } from \"${{ env.npmlibraryName }}\";" > src/index.ts
+
+  # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export
+  # export * from "module-name";
+  # export { default }
+      - if: ${{ matrix.type == 'esm' }}
+        name: write dummy index.ts
+        shell: bash
+        run: |
+          echo -e "// @ts-ignore\nexport * from \"${{ env.npmlibraryName }}\";\n// @ts-ignore\nexport { default } from \"${{ env.npmlibraryName }}\";" > src/index.ts
+          
+      # - name: write dummy index.js, advanced DO NOT REMOVE
+      #   shell: sh
+      #   run: |
+      #     cd minimal-webpack-boilerplate && \
+      #     echo "export * as pdfMake from \"${{ env.npmlibraryName }}/build/pdfmake\";export * as pdfFonts from \"${{ env.npmlibraryName }}/build/vfs_fonts\";" > src/index.js
+      # --resolve-fallback-alias path --resolve-fallback-name require.resolve('path-browserify')
+
+      - if: ${{ matrix.type == 'var' }}
+        shell: cmd
+        run: |
+            set PATH=^
+            ${{ github.workspace }}\node-v18.12.1-win-x64;^
+            ${{ github.workspace }}\PortableGit-2.38.1-64-bit\bin;
+            npm install ${{ env.npmlibraryName }} &&^
+            npx webpack --help=verbose &&^
+            npx cross-env NODE_ENV=production webpack ${{ env.appendToWebpackCli }} --output-library-type=var --output-library-name=${{ env.exportJSVariableName }} --output-filename=${{ env.exportFileName }}.${{ env.version }}.var.min.js
+      
+      - if: ${{ matrix.type == 'assign' }}
+        shell: cmd
+        run: |
+            set PATH=^
+            ${{ github.workspace }}\node-v18.12.1-win-x64;^
+            ${{ github.workspace }}\PortableGit-2.38.1-64-bit\bin;
+            npm install ${{ env.npmlibraryName }} &&^
+            npx webpack --help=verbose &&^
+            npx cross-env NODE_ENV=production webpack ${{ env.appendToWebpackCli }} --output-library-type=assign --output-library-name=${{ env.exportJSVariableName }} --output-filename=${{ env.exportFileName }}.${{ env.version }}.assign.min.js
+      
+      - if: ${{ matrix.type == 'esm' }}
+        shell: cmd
+        run: |
+            set PATH=^
+            ${{ github.workspace }}\node-v18.12.1-win-x64;^
+            ${{ github.workspace }}\PortableGit-2.38.1-64-bit\bin;
+            npm install ${{ env.npmlibraryName }} &&^
+            npx webpack --help=verbose &&^
+            npx cross-env NODE_ENV=production webpack ${{ env.appendToWebpackCli }} --output-library-type=module --experiments-output-module --output-filename=${{ env.exportFileName }}.${{ env.version }}.esm.min.js
+            
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          automatic_release_tag: ${{ env.npmlibraryName }}.${{ env.version }}.${{ matrix.type }}
+          title: ${{ env.npmlibraryName }}.${{ env.version }}.${{ matrix.type }}.min.js
+          files: |
+            dist/*.js
+            dist/*.wasm
+
+
+
+
+
+
+
