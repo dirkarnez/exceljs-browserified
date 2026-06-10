@@ -39,6 +39,7 @@
     "webpack-dev-server": "^4.11.1"
   },
   "dependencies": {
-    "fastest-levenshtein": "^1.0.16"
+    "exceljs": "^4.4.0",
+    "readable-web-to-node-stream": "^5.0.0"
   }
 }
