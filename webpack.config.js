@@ -49,6 +49,9 @@ module.exports = {
 		// alias: {
 		// 	svelte: path.resolve('node_modules', 'svelte/src/runtime')
 		// },
+		alias: {
+			stream: require.resolve('stream-browserify'),
+		},
 		extensions: [".ts", ".mjs", ".js"],
 		mainFields: ["svelte", "browser", "module", "main"],
 		conditionNames: ['svelte', 'import', 'browser'],
@@ -63,9 +66,9 @@ module.exports = {
 			zlib: require.resolve('browserify-zlib')
 		}
 	},
-	experiments: {
-		outputModule: true,
-	},
+	// experiments: {
+	// 	outputModule: true,
+	// },
 	// output: {
 	// 	path: __dirname + "/dist",
 	// 	library: {

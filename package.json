@@ -4,6 +4,7 @@
   "description": "",
   "scripts": {
     "start": "cross-env NODE_ENV=development webpack serve --static dist",
+    "build-umd": "cross-env NODE_ENV=production webpack --output-library-type=umd --output-library-name=aaa --output-filename=aaa.var.min.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -28,6 +29,7 @@
     "cross-env": "^7.0.3",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.6.3",
+    "iconv-lite": "^0.7.2",
     "json-loader": "^0.5.7",
     "path-browserify": "^1.0.1",
     "process": "^0.11.10",
